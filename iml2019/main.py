@@ -27,6 +27,9 @@ from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from rdkit.Chem.AtomPairs import Pairs
+from rdkit.Chem.AllChem import GetHashedAtomPairFingerprintAsBitVect
+from rdkit.Chem import MACCSkeys
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -93,14 +96,18 @@ def create_fingerprints(chemical_compounds):
     """
     n_chem = chemical_compounds.shape[0]
 
-    nBits = 124
+    #nBits = 167
+    nBits = 512
     X = np.zeros((n_chem, nBits))
-
+    X2 = np.zeros((n_chem, 167))
     for i in range(n_chem):
         m = Chem.MolFromSmiles(chemical_compounds[i])
-        X[i,:] = AllChem.GetMorganFingerprintAsBitVect(m,2,nBits=124)
+        X[i,:] = AllChem.GetMorganFingerprintAsBitVect(m,3,nBits=512,useFeatures=True)
+        X2[i,:] = MACCSkeys.GenMACCSKeys(m)
 
-    return X
+        #print(AllChem.GetMorganFingerprintAsBitVect(m,2,nBits=1024))
+    X3 = np.concatenate((X,X2),axis=1)
+    return X3
 
 def make_submission(y_predicted, auc_predicted, file_name="submission", date=True, indexes=None):
     """
